@@ -1,0 +1,251 @@
+ //      -*- C++ -*-
+//     cd C:\Users\lmbhoc2\Documents\ADHOC2_docs\PROGRAMMING\Qt\HEXplorer_src\src\Quex
+//     quex -i a2l_quex_lexer.qx -o a2l_quex_lexer > toto.txt
+
+
+header
+{
+#include <cstdlib>  // for: atoi()
+}
+
+define 
+{
+   D_WHITESPACE    		[ \t]+
+   //D_SUB_IDENTIFIER    	[_a-zA-Z][_a-zA-Z0-9\[\]]*
+   D_SUB_IDENTIFIER    	[_a-zA-Z0-9]*(\[[_a-zA-Z0-9]+\])*
+   D_UINTEGER			[0-9]+
+   D_HEX 				0x[0-9A-Fa-f]+	
+   D_FLOAT 			[\+\-]?{D_UINTEGER}\.{D_UINTEGER}?
+   D_BLOCK_BEGIN 		\/begin
+   D_BLOCK_END 		\/end
+//   D_STRING			\".*\"   
+//   D_STRING			\"([^\\\"]*((\\\"[^\\\"]*\\\"[^\"]*)+\"|(\"\"[^\"]*\"\"[^\"]*)+\"|(\\\\[^\"]*)+\"))   
+   D_STRING			\"(\\\"|\"\"|\\'|\\[^"'\\]|[^\\"]|\\\\)*\"   
+   D_COMMENT			(\/\*([^*]|[\r\n]|(\*+([^*\/]|[\r\n])))*\*+\/)|(\/\/.*)
+
+}
+
+token 
+{
+   IDENTIFIER;
+   INTEGER;
+   FLOAT;
+   HEX;
+   STRING;
+   STRINGFORMAT;
+   COMMENT;
+   BLOCKBEGIN;
+   BLOCKEND;
+   KEYWORD;
+   TYPE;
+   DATATYPE;
+   DATASIZE;
+   ADDRTYPE;
+   BYTEORDER;
+   INDEXMODE;
+   INDEXORDER;
+   CONVERSIONTYPE;
+   ATTRIBUTE;
+   MODE;
+   PRGTYPE;
+   MEMORYTYPE;
+   MEMATTRIBUTE;  
+   UNITTYPE;
+   UNKNOWN;
+}
+
+mode ONE_AND_ONLY :
+<skip:       [\r\n]>
+<skip_range: "/begin A2ML" "/end A2ML">
+<skip_range: "/begin IF_DATA" "/end IF_DATA">
+{
+	// KEYWORDS
+    
+    A_INT64 	 { self.send_string(QUEX_TKN_DATATYPE , Lexeme); RETURN; }
+    A_UINT64 	 {self.send_string(QUEX_TKN_DATATYPE , Lexeme); RETURN; }
+    A2ML 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    A2ML_VERSION 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ABSOLUTE 	 {self.send_string(QUEX_TKN_MODE , Lexeme); RETURN; }
+    ADDR_EPK 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ALIGNMENT_BYTE 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ALIGNMENT_FLOAT32_IEEE 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+        ALIGNMENT_FLOAT64_IEEE 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ALIGNMENT_LONG 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ALIGNMENT_WORD 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ALTERNATE_CURVES 	 {self.send_string(QUEX_TKN_INDEXMODE , Lexeme); RETURN; }
+    ALTERNATE_WITH_X 	 {self.send_string(QUEX_TKN_INDEXMODE , Lexeme); RETURN; }
+    ALTERNATE_WITH_Y 	 {self.send_string(QUEX_TKN_INDEXMODE , Lexeme); RETURN; }
+    ANNOTATION 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ANNOTATION_LABEL 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ANNOTATION_ORIGIN 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ANNOTATION_TEXT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ARRAY_SIZE 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ASAP2_VERSION 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ASCII 	 {self.send_string(QUEX_TKN_TYPE , Lexeme); RETURN; }
+    AXIS_DESCR 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    AXIS_PTS 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    AXIS_PTS_REF 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    AXIS_PTS_X 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    AXIS_PTS_Y 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    BIG_ENDIAN 	 {self.send_string(QUEX_TKN_BYTEORDER , Lexeme); RETURN; }
+    BIT_MASK 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    BYTE 	 {self.send_string(QUEX_TKN_DATASIZE , Lexeme); RETURN; }
+    BYTE_ORDER 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    CALIBRATION_HANDLE 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    CALIBRATION_HANDLE_TEXT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    CALIBRATION_METHOD 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    CALIBRATION_VARIABLES 	 {self.send_string(QUEX_TKN_PRGTYPE , Lexeme); RETURN; }
+    CHARACTERISTIC 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    CODE 	 {self.send_string(QUEX_TKN_PRGTYPE , Lexeme); RETURN; }
+    COEFFS 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    COEFFS_LINEAR 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    COLUMN_DIR 	 {self.send_string(QUEX_TKN_INDEXMODE , Lexeme); RETURN; }
+    COM_AXIS 	 {self.send_string(QUEX_TKN_ATTRIBUTE , Lexeme); RETURN; }
+    COMPU_METHOD 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    COMPU_TAB 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    COMPU_TAB_REF 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    COMPU_VTAB 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    COMPU_VTAB_RANGE 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    CPU_TYPE 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    CUBE_4 	 {self.send_string(QUEX_TKN_TYPE , Lexeme); RETURN; }
+    CUBE_5 	 {self.send_string(QUEX_TKN_TYPE , Lexeme); RETURN; }
+    CUBOID 	 {self.send_string(QUEX_TKN_TYPE , Lexeme); RETURN; }
+    CURVE 	 {self.send_string(QUEX_TKN_TYPE , Lexeme); RETURN; }
+    CURVE_AXIS 	 {self.send_string(QUEX_TKN_ATTRIBUTE , Lexeme); RETURN; }
+        CUSTOMER 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    CUSTOMER_NO 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    DATA 	 {self.send_string(QUEX_TKN_PRGTYPE , Lexeme); RETURN; }
+        DATA_SIZE 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    DEF_CHARACTERISTIC 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    DEFAULT_VALUE 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    DEFAULT_VALUE_NUMERIC 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    DEPOSIT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    DERIVED 	 {self.send_string(QUEX_TKN_UNITTYPE , Lexeme); RETURN; }
+    DIRECT 	 {self.send_string(QUEX_TKN_ADDRTYPE , Lexeme); RETURN; }
+        DISPLAY_IDENTIFIER 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ECU 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ECU_ADDRESS 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    ECU_ADDRESS_EXTENSION 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    EEPROM 	 {self.send_string(QUEX_TKN_MEMORYTYPE , Lexeme); RETURN; }
+    EPK 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    EPROM 	 {self.send_string(QUEX_TKN_MEMORYTYPE , Lexeme); RETURN; }
+    EXCLUDE_FROM_FLASH 	 {self.send_string(QUEX_TKN_PRGTYPE , Lexeme); RETURN; }
+    EXTENDED_LIMITS 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    EXTENDED_SI 	 {self.send_string(QUEX_TKN_UNITTYPE , Lexeme); RETURN; }
+    EXTERN 	 {self.send_string(QUEX_TKN_MEMATTRIBUTE , Lexeme); RETURN; }
+    FIX_AXIS 	 {self.send_string(QUEX_TKN_ATTRIBUTE , Lexeme); RETURN; }
+    FIX_AXIS_PAR 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    FIX_AXIS_PAR_DIST 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    FLASH 	 {self.send_string(QUEX_TKN_MEMORYTYPE , Lexeme); RETURN; }
+    FLOAT32_IEEE 	 {self.send_string(QUEX_TKN_DATATYPE , Lexeme); RETURN; }
+    FLOAT64_IEEE 	 {self.send_string(QUEX_TKN_DATATYPE , Lexeme); RETURN; }
+    FNC_VALUES 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    FORM 	 {self.send_string(QUEX_TKN_CONVERSIONTYPE , Lexeme); RETURN; }
+    FORMAT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    FORMULA 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    FORMULA_INV 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    FUNCTION 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+        FUNCTION_LIST 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    FUNCTION_VERSION 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    GROUP 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    HEADER 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    IDENTICAL 	 {self.send_string(QUEX_TKN_CONVERSIONTYPE , Lexeme); RETURN; }
+    IF_DATA 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    IN_MEASUREMENT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    INDEX_DECR 	 {self.send_string(QUEX_TKN_INDEXORDER , Lexeme); RETURN; }
+    INDEX_INCR 	 {self.send_string(QUEX_TKN_INDEXORDER , Lexeme); RETURN; }
+    INTERN 	 {self.send_string(QUEX_TKN_MEMATTRIBUTE , Lexeme); RETURN; }
+    LINEAR 	 {self.send_string(QUEX_TKN_CONVERSIONTYPE , Lexeme); RETURN; }
+    LITTLE_ENDIAN 	 {self.send_string(QUEX_TKN_BYTEORDER , Lexeme); RETURN; }
+    LOC_MEASUREMENT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    LONG 	 {self.send_string(QUEX_TKN_DATASIZE , Lexeme); RETURN; }
+    MAP 	 {self.send_string(QUEX_TKN_TYPE , Lexeme); RETURN; }
+    MATRIX_DIM 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    MAX_REFRESH 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    MEASUREMENT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    MEMORY_LAYOUT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    MEMORY_SEGMENT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    MOD_COMMON 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    MOD_PAR 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    MODULE 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    MSB_FIRST 	 {self.send_string(QUEX_TKN_BYTEORDER , Lexeme); RETURN; }
+    MSB_LAST 	 {self.send_string(QUEX_TKN_BYTEORDER , Lexeme); RETURN; }
+    NO_AXIS_PTS_X 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    NO_AXIS_PTS_Y 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    NUMBER 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    OFFLINE_DATA 	 {self.send_string(QUEX_TKN_PRGTYPE , Lexeme); RETURN; }
+    OUT_MEASUREMENT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    PBYTE 	 {self.send_string(QUEX_TKN_ADDRTYPE , Lexeme); RETURN; }
+    PHONE_NO 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    PLONG 	 {self.send_string(QUEX_TKN_ADDRTYPE , Lexeme); RETURN; }
+    PRG_CODE 	 {self.send_string(QUEX_TKN_PRGTYPE , Lexeme); RETURN; }
+    PRG_DATA 	 {self.send_string(QUEX_TKN_PRGTYPE , Lexeme); RETURN; }
+    PRG_RESERVED 	 {self.send_string(QUEX_TKN_PRGTYPE , Lexeme); RETURN; }
+    PROJECT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    PROJECT_NO 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    PWORD 	 {self.send_string(QUEX_TKN_ADDRTYPE , Lexeme); RETURN; }
+    RAM 	 {self.send_string(QUEX_TKN_MEMORYTYPE , Lexeme); RETURN; }
+    RAT_FUNC 	 {self.send_string(QUEX_TKN_CONVERSIONTYPE , Lexeme); RETURN; }
+    READ_ONLY 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    RECORD_LAYOUT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    REF_CHARACTERISTIC 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+        REF_MEASUREMENT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    REF_UNIT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    REFERENCE 	 {self.send_string(QUEX_TKN_MODE , Lexeme); RETURN; }
+    REGISTER 	 {self.send_string(QUEX_TKN_MEMORYTYPE , Lexeme); RETURN; }
+    RES_AXIS 	 {self.send_string(QUEX_TKN_ATTRIBUTE , Lexeme); RETURN; }
+    RESERVED 	 {self.send_string(QUEX_TKN_PRGTYPE , Lexeme); RETURN; }
+    ROM 	 {self.send_string(QUEX_TKN_MEMORYTYPE , Lexeme); RETURN; }
+    ROW_DIR 	 {self.send_string(QUEX_TKN_INDEXMODE , Lexeme); RETURN; }
+        ROOT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    S_REC_LAYOUT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    SBYTE 	 {self.send_string(QUEX_TKN_DATATYPE , Lexeme); RETURN; }
+    SERAM 	 {self.send_string(QUEX_TKN_PRGTYPE , Lexeme); RETURN; }
+    SI_EXPONENTS 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    SLONG 	 {self.send_string(QUEX_TKN_DATATYPE , Lexeme); RETURN; }
+    SRC_ADDR_X 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    SRC_ADDR_Y 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    STATIC_RECORD_LAYOUT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    STATUS_STRING_REF 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    STD_AXIS 	 {self.send_string(QUEX_TKN_ATTRIBUTE , Lexeme); RETURN; }
+    SUB_FUNCTION 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+        SUB_GROUP 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+        SUPPLIER 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    SWORD 	 {self.send_string(QUEX_TKN_DATATYPE , Lexeme); RETURN; }
+    SYSTEM_CONSTANT 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    TAB_INTP 	 {self.send_string(QUEX_TKN_CONVERSIONTYPE , Lexeme); RETURN; }
+    TAB_NOINTP 	 {self.send_string(QUEX_TKN_CONVERSIONTYPE , Lexeme); RETURN; }
+    TAB_VERB 	 {self.send_string(QUEX_TKN_CONVERSIONTYPE , Lexeme); RETURN; }
+    UBYTE 	 {self.send_string(QUEX_TKN_DATATYPE , Lexeme); RETURN; }
+    ULONG 	 {self.send_string(QUEX_TKN_DATATYPE , Lexeme); RETURN; }
+    UNIT 	 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    UNIT_CONVERSION 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    USER 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    UWORD 	 {self.send_string(QUEX_TKN_DATATYPE , Lexeme); RETURN; }
+    VAL_BLK 	 {self.send_string(QUEX_TKN_TYPE , Lexeme); RETURN; }
+    VALUE 	 {self.send_string(QUEX_TKN_TYPE , Lexeme); RETURN; }
+    VARIABLES 	 {self.send_string(QUEX_TKN_PRGTYPE , Lexeme); RETURN; }
+    VERSION 	 {self.send_string(QUEX_TKN_KEYWORD , Lexeme); RETURN; }
+    WORD 	 {self.send_string(QUEX_TKN_DATASIZE , Lexeme); RETURN; }
+
+	<<EOF>>     => QUEX_TKN_TERMINATION;
+	{D_WHITESPACE}  { }   
+        [_a-zA-Z]{D_SUB_IDENTIFIER}(\.{D_SUB_IDENTIFIER}*)* 	{self.send_string(QUEX_TKN_IDENTIFIER, Lexeme); RETURN; }
+    [\+\-]?{D_UINTEGER} 						{self.send_string(QUEX_TKN_INTEGER, Lexeme); RETURN; }
+    {D_FLOAT}([eE][\+\-]?{D_UINTEGER})?     		{self.send_string(QUEX_TKN_FLOAT, Lexeme); RETURN; }
+    {D_UINTEGER}([eE][\+\-]?{D_UINTEGER})?     		{self.send_string(QUEX_TKN_FLOAT, Lexeme); RETURN; }
+    {D_COMMENT}				 			{self.send_string(QUEX_TKN_COMMENT, Lexeme); RETURN; }
+    "\"%"{D_UINTEGER}\.{D_UINTEGER}"\"%"			{self.send_string(QUEX_TKN_STRINGFORMAT, Lexeme); RETURN; }
+    {D_STRING}           						{self.send_string(QUEX_TKN_STRING, Lexeme); RETURN; }
+    {D_BLOCK_BEGIN} 						{self.send_string(QUEX_TKN_BLOCKBEGIN, Lexeme); RETURN; }
+    {D_BLOCK_END} 							{self.send_string(QUEX_TKN_BLOCKEND, Lexeme); RETURN; }
+    {D_HEX} 								{self.send_string(QUEX_TKN_HEX, Lexeme); RETURN; }
+        
+
+        on_failure {self.send_string(QUEX_TKN_UNKNOWN , Lexeme); RETURN; }
+
+}
+
+
+
+
