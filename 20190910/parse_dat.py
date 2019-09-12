@@ -7,76 +7,199 @@ import matplotlib.pyplot as plt
 import sys
 import numpy as np
 from collections import Counter
+from matplotlib import pyplot as plt
+import shutil
+from collections import Counter
+import time
 
-path = r"D:\woocal_code\20190910"
-datas = []
-newDir = ''
+DRAW_PIC = True
 
-def eachFile(filepath):
-    for root,dirs,files in os.walk(filepath):
-        for file in files:
-            name=os.path.splitext(file)[0]
-            suffix=os.path.splitext(file)[1]
-            print(name)
-            print(suffix)
-            if os.path.splitext(file)[1] == ".dat":
-                print(file)
-                file_abs=os.path.join(root,file)
-                datas.append(file_abs)
+
+class ECUChannel():
+    def __init__(self):
+        self.channel_name = ""
+        self.channel_values = []
+        self.channel_unit = ""
+        self.sample_time = []
+        self.time_channel = ""
+        self.maxvalue = 0
+        self.minvalue = 0
+        self.meanx = 0
+        self.manyx = 0
+        self.manyxproportion = 0
+
+    def set_channel_name(self, channel_name):
+        self.channel_name = channel_name
+
+    def set_channel_unit(self, channel_unit):
+        self.channel_unit = channel_unit
+
+    def set_sample_time(self, sample_time):
+        self.sample_time = sample_time
+
+    def set_channel_values(self, channel_values):
+        self.channel_values = channel_values
+
+    def set_time_channel(self, time_channel):
+        self.time_channel = time_channel
+
+
+
+class ParseDat():
+    def __init__(self):
+        self.path = r"D:\woocal_code\20190910"
+        self.datas = []
+        self.picture_path = os.path.join(self.path, "picture")
+        self.current_dat = ""
+        self.sample_mark = 10
+        self.channels = []
+        self.time_channel_info = {}
+        self.time_list = []
+        self.dat_name = ""
+
+    def eachFile(self):
+        for root, dirs, files in os.walk(self.path):
+            for file in files:
+                name = os.path.splitext(file)[0]
+                suffix = os.path.splitext(file)[1]
+                if os.path.splitext(file)[1] == ".dat":
+                    file_abs = os.path.join(root, file)
+                    self.datas.append(file_abs)
+
+    def draw_picture(self, ecu_channel):
+        dat_path = os.path.join(self.picture_path, self.dat_name)
+        if not os.path.exists(dat_path):
+            os.makedirs(dat_path)
+        pic_name = "-".join(ecu_channel.channel_name.split("."))
+        pic_path = os.path.join(dat_path, pic_name)
+        # fig = plt.figure(figsize=(20, 8), dpi=80)
+        x_n = len(ecu_channel.channel_values)
+        sample_step = x_n // self.sample_mark
+
+        time_list = self.time_channel_info[ecu_channel.time_channel]["value"]
+        # subscript_list=np.linspace(start,end,sample_step)
+        x = [time_list[i] for i in range(0, x_n, self.sample_mark)]
+        y = [ecu_channel.channel_values[i] for i in range(0, x_n, self.sample_mark)]
+
+        plt.plot(x, y, color="red")
+        plt.xlabel("time")
+        plt.ylabel(ecu_channel.channel_name + "   ({})".format(ecu_channel.channel_unit))
+        plt.savefig(pic_path)
+        plt.clf()
+
+    def clean_data(self, ecu_channel):
+        new_data_list = []
+        for data in ecu_channel.channel_values:
+            try:
+                new_data = float(data)
+                new_data_list.append(new_data)
+            except Exception as e:
+                print(e)
+
+        ecu_channel.set_channel_values(new_data_list)
+        return ecu_channel
+
+    def time_channel_deal(self, yop):
+        values = []
+        for channel in self.channels:
+            if "time" in channel:
+                values = yop.get_channel_data(channel)
+                length = len(values)
+                info = {
+                    "value": values,
+                    "length": length
+                }
+                self.time_channel_info[channel] = info
+        print(self.time_channel_info)
+
+    def get_time_channel(self, ecu_channel):
+        for key, value in self.time_channel_info.items():
+            channel_length = len(ecu_channel.channel_values)
+            if channel_length == value["length"]:
+                ecu_channel.set_time_channel(key)
+                break
+
+    def traverse_channel(self):
+        workbook = xlsxwriter.Workbook(self.path + '/0912_测试数据统计.xlsx')
+        worksheet = workbook.add_worksheet('汇总表')
+        ecu_channel = ECUChannel()
+        i = 1
+        for xm1 in self.datas:
+            self.dat_name = os.path.splitext(os.path.basename(xm1))[0]
+            self.current_dat = xm1
+            yop = mdfreader.Mdf(xm1)
+            self.channels = yop.keys()
+            self.time_channel_deal(yop)
+
+            for channel in self.channels:
+                ecu_channel.set_channel_name(channel)
+                values = yop.get_channel_data(channel)
+                ecu_channel.set_channel_values(values)
+                unit = yop.get_channel_unit(channel)
+                ecu_channel.set_channel_unit(unit)
+
+                self.get_time_channel(ecu_channel)
+                ecu_channel = self.clean_data(ecu_channel)
+                # print(id(ecu_channel))
+
+                if channel not in self.time_channel_info.keys():
+                    # 画折线图
+                    if ecu_channel.channel_values and DRAW_PIC:
+                        self.draw_picture(ecu_channel)
+
+                # 数据写到excel表格
+                maxvalue = max(values)
+                minvalue = min(values)
+                try:
+                    meanx = np.mean(values)
+                except TypeError:
+                    meanx = None
+                count = Counter(values)
+                max_count = max(count.values())
+                for key, value in count.items():
+                    if value == max_count:
+                        manyx = key
+                        manyxproportion = '{:.4%}'.format(value / len(values))
+
+                worksheet.write(0, 0, '文件路径')
+                worksheet.write(0, 1, '通道名称')
+                worksheet.write(0, 2, '最小值')
+                worksheet.write(0, 3, '最大值')
+                worksheet.write(0, 4, '平均数')
+                worksheet.write(0, 5, '众数')
+                worksheet.write(0, 6, '众数比例')
+                # self.worksheet.write(0,7,"折线图")
+                worksheet.write(i, 0, self.current_dat)
+                worksheet.write(i, 1, channel)
+                worksheet.write(i, 2, str(minvalue))
+                worksheet.write(i, 3, str(maxvalue))
+                worksheet.write(i, 4, str(meanx))
+                worksheet.write(i, 5, str(manyx))
+                worksheet.write(i, 6, str(manyxproportion))
+                # self.worksheet.insert_chart(i, 7, chart)
+                i = i + 1
+        workbook.close()
+
+    def draw_picture_test(self):
+        pic_path = os.path.join(self.picture_path, "test")
+        # fig = plt.figure(figsize=(20, 8), dpi=80)
+        # final_list=[[1,2,3],[1,3,5],[2,4,6]]
+        x = np.linspace(0, 10000, 40)
+        y = np.random.randint(0, 100000, 40)
+        plt.plot(x, y)
+        plt.savefig(pic_path)
+
 
 if __name__ == "__main__":
     # book = xlwt.Workbook(encoding='utf-8', style_compression=0)
     # sheet = book.add_sheet('mysheet', cell_overwrite_ok=True)
-    workbook = xlsxwriter.Workbook(path + '/0827_测试数据统计.xlsx')
-    worksheet = workbook.add_worksheet('汇总表')
-    # workbook=xlsxwriter.workbook(r'E:\360MoveData\Users\Season\Desktop\Dat_file_summary.xlsx')
-    # worksheet=workbook.add_worksheet()
-    eachFile(path)
-    print(datas)
-    # print(datas)
-    i=1
-    mean_value=0
-    median_value=0
-    for xm1 in datas:
-        yop = mdfreader.Mdf(xm1)
-        kys = yop.keys()
-        # print(xm1)
-        # T5_start = min((yop.get_channel_data("time_5")))
-        # T5_finish = min(int(yop.get_channel_data("time_5")))
-        for item in kys:
-            manyx_dict={}
-            data_list=yop.get_channel_data(item)
-            print(data_list)
-            print(data_list.dtype)
-            maxvalue=max(data_list)
-            minvalue = min(data_list)
-            try:
-                meanx=np.mean(data_list)
-            except TypeError as e:
-                meanx=None
-            count=Counter(data_list)
-            max_count=max(count.values())
-            for key,value in count.items():
-                if value == max_count:
-                    manyx=key
-                    manyxproportion = '{:.4%}'.format(value / len(data_list))
-            # mean_value=np.mean(yop.get_channel_data(item))
-            # median_value = np.median(yop.get_channel_data(item))
-
-            worksheet.write(0, 0, '文件路径')
-            worksheet.write(0, 1, '通道名称')
-            worksheet.write(0, 2, '最小值')
-            worksheet.write(0, 3, '最大值')
-            worksheet.write(0, 4, '平均数')
-            worksheet.write(0, 5 , '众数')
-            worksheet.write(0, 6, '众数比例')
-            worksheet.write(i, 0, xm1)
-            worksheet.write(i, 1, item)
-            worksheet.write(i, 2, str(minvalue))
-            worksheet.write(i, 3, str(maxvalue))
-            worksheet.write(i, 4, str(meanx))
-            worksheet.write(i, 5, str(manyx))
-            worksheet.write(i, 6, str(manyxproportion))
-            i = i + 1
-
-    workbook.close()
+    start=time.time()
+    pd = ParseDat()
+    # pd.draw_picture_test()
+    pd.eachFile()
+    print("Parse Dat File,please wait!")
+    pd.traverse_channel()
+    print("Done!")
+    end=time.time()
+    print("Totle {} seconds!".format(end-start))
+    # pd.write_excel()
