@@ -13,6 +13,7 @@ from collections import Counter
 import time
 
 DRAW_PIC = True
+WRITE_EXCEL=True
 
 
 class ECUChannel():
@@ -22,11 +23,6 @@ class ECUChannel():
         self.channel_unit = ""
         self.sample_time = []
         self.time_channel = ""
-        self.maxvalue = 0
-        self.minvalue = 0
-        self.meanx = 0
-        self.manyx = 0
-        self.manyxproportion = 0
 
     def set_channel_name(self, channel_name):
         self.channel_name = channel_name
@@ -77,12 +73,13 @@ class ParseDat():
         sample_step = x_n // self.sample_mark
 
         time_list = self.time_channel_info[ecu_channel.time_channel]["value"]
+        time_unit= self.time_channel_info[ecu_channel.time_channel]["unit"]
         # subscript_list=np.linspace(start,end,sample_step)
         x = [time_list[i] for i in range(0, x_n, self.sample_mark)]
         y = [ecu_channel.channel_values[i] for i in range(0, x_n, self.sample_mark)]
 
         plt.plot(x, y, color="red")
-        plt.xlabel("time")
+        plt.xlabel("time   ({})".format(time_unit))
         plt.ylabel(ecu_channel.channel_name + "   ({})".format(ecu_channel.channel_unit))
         plt.savefig(pic_path)
         plt.clf()
@@ -105,9 +102,11 @@ class ParseDat():
             if "time" in channel:
                 values = yop.get_channel_data(channel)
                 length = len(values)
+                unit=yop.get_channel_unit(channel)
                 info = {
                     "value": values,
-                    "length": length
+                    "length": length,
+                    "unit" : unit
                 }
                 self.time_channel_info[channel] = info
         print(self.time_channel_info)
@@ -120,16 +119,23 @@ class ParseDat():
                 break
 
     def traverse_channel(self):
-        workbook = xlsxwriter.Workbook(self.path + '/0912_测试数据统计.xlsx')
-        worksheet = workbook.add_worksheet('汇总表')
+        if WRITE_EXCEL:
+            time_str = time.strftime("%m%d", time.localtime())
+            workbook = xlsxwriter.Workbook(self.path + '/{}_测试数据统计.xlsx'.format(time_str))
+            worksheet = workbook.add_worksheet('汇总表')
         ecu_channel = ECUChannel()
         i = 1
+        count=0
         for xm1 in self.datas:
+            count=count+1
+            data_len=len(self.datas)
             self.dat_name = os.path.splitext(os.path.basename(xm1))[0]
+            dat=os.path.basename(xm1)
             self.current_dat = xm1
             yop = mdfreader.Mdf(xm1)
             self.channels = yop.keys()
             self.time_channel_deal(yop)
+            print("一共{}个dat文件，正在解析第{}个dat文件。".format(data_len,count))
 
             for channel in self.channels:
                 ecu_channel.set_channel_name(channel)
@@ -148,37 +154,39 @@ class ParseDat():
                         self.draw_picture(ecu_channel)
 
                 # 数据写到excel表格
-                maxvalue = max(values)
-                minvalue = min(values)
-                try:
-                    meanx = np.mean(values)
-                except TypeError:
-                    meanx = None
-                count = Counter(values)
-                max_count = max(count.values())
-                for key, value in count.items():
-                    if value == max_count:
-                        manyx = key
-                        manyxproportion = '{:.4%}'.format(value / len(values))
+                if WRITE_EXCEL:
+                    maxvalue = max(values)
+                    minvalue = min(values)
+                    try:
+                        meanx = np.mean(values)
+                    except TypeError:
+                        meanx = None
+                    count_dict = Counter(values)
+                    max_count = max(count_dict.values())
+                    for key, value in count_dict.items():
+                        if value == max_count:
+                            manyx = key
+                            manyxproportion = '{:.4%}'.format(value / len(values))
 
-                worksheet.write(0, 0, '文件路径')
-                worksheet.write(0, 1, '通道名称')
-                worksheet.write(0, 2, '最小值')
-                worksheet.write(0, 3, '最大值')
-                worksheet.write(0, 4, '平均数')
-                worksheet.write(0, 5, '众数')
-                worksheet.write(0, 6, '众数比例')
-                # self.worksheet.write(0,7,"折线图")
-                worksheet.write(i, 0, self.current_dat)
-                worksheet.write(i, 1, channel)
-                worksheet.write(i, 2, str(minvalue))
-                worksheet.write(i, 3, str(maxvalue))
-                worksheet.write(i, 4, str(meanx))
-                worksheet.write(i, 5, str(manyx))
-                worksheet.write(i, 6, str(manyxproportion))
-                # self.worksheet.insert_chart(i, 7, chart)
-                i = i + 1
-        workbook.close()
+                    worksheet.write(0, 0, '文件路径')
+                    worksheet.write(0, 1, '通道名称')
+                    worksheet.write(0, 2, '最小值')
+                    worksheet.write(0, 3, '最大值')
+                    worksheet.write(0, 4, '平均数')
+                    worksheet.write(0, 5, '众数')
+                    worksheet.write(0, 6, '众数比例')
+                    # self.worksheet.write(0,7,"折线图")
+                    worksheet.write(i, 0, self.current_dat)
+                    worksheet.write(i, 1, channel)
+                    worksheet.write(i, 2, str(minvalue))
+                    worksheet.write(i, 3, str(maxvalue))
+                    worksheet.write(i, 4, str(meanx))
+                    worksheet.write(i, 5, str(manyx))
+                    worksheet.write(i, 6, str(manyxproportion))
+                    # self.worksheet.insert_chart(i, 7, chart)
+                    i = i + 1
+        if WRITE_EXCEL:
+            workbook.close()
 
     def draw_picture_test(self):
         pic_path = os.path.join(self.picture_path, "test")
