@@ -43,7 +43,7 @@ class ECUChannel():
 
 class ParseDat():
     def __init__(self):
-        self.path = r"D:\woocal_code\20190910"
+        self.path = r"D:\woocaldata\woocal-code\parse_dat"
         self.datas = []
         self.picture_path = os.path.join(self.path, "picture")
         self.current_dat = ""
@@ -140,6 +140,10 @@ class ParseDat():
             for channel in self.channels:
                 ecu_channel.set_channel_name(channel)
                 values = yop.get_channel_data(channel)
+                size=sys.getsizeof(list(values))
+                lenx=len(values)
+                print("size={}".format(size))
+                print("lenx={}".format(lenx))
                 ecu_channel.set_channel_values(values)
                 unit = yop.get_channel_unit(channel)
                 ecu_channel.set_channel_unit(unit)
