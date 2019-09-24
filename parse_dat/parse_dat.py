@@ -144,15 +144,12 @@ class ParseDat():
                 values = yop.get_channel_data(channel)
                 size=sys.getsizeof(list(values))
                 lenx=len(values)
-                print("size={}".format(size))
-                print("lenx={}".format(lenx))
                 ecu_channel.set_channel_values(values)
                 unit = yop.get_channel_unit(channel)
                 ecu_channel.set_channel_unit(unit)
 
                 self.get_time_channel(ecu_channel)
                 ecu_channel = self.clean_data(ecu_channel)
-                # print(id(ecu_channel))
 
                 if channel not in self.time_channel_info.keys():
                     # 画折线图
