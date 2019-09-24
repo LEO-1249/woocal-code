@@ -14,6 +14,7 @@ import time
 
 DRAW_PIC = True
 WRITE_EXCEL=True
+PATH = r"D:\woocal_code\parse_dat"
 
 
 class ECUChannel():
@@ -43,9 +44,9 @@ class ECUChannel():
 
 class ParseDat():
     def __init__(self):
-        self.path = r"D:\woocaldata\woocal-code\parse_dat"
         self.datas = []
-        self.picture_path = os.path.join(self.path, "picture")
+        self.dat_name = ""
+        self.dat_path = ""
         self.current_dat = ""
         self.sample_mark = 10
         self.channels = []
@@ -54,7 +55,7 @@ class ParseDat():
         self.dat_name = ""
 
     def eachFile(self):
-        for root, dirs, files in os.walk(self.path):
+        for root, dirs, files in os.walk(PATH):
             for file in files:
                 name = os.path.splitext(file)[0]
                 suffix = os.path.splitext(file)[1]
@@ -63,7 +64,7 @@ class ParseDat():
                     self.datas.append(file_abs)
 
     def draw_picture(self, ecu_channel):
-        dat_path = os.path.join(self.picture_path, self.dat_name)
+        dat_path = os.path.join(self.dat_path, self.dat_name)
         if not os.path.exists(dat_path):
             os.makedirs(dat_path)
         pic_name = "-".join(ecu_channel.channel_name.split("."))
@@ -121,7 +122,7 @@ class ParseDat():
     def traverse_channel(self):
         if WRITE_EXCEL:
             time_str = time.strftime("%m%d", time.localtime())
-            workbook = xlsxwriter.Workbook(self.path + '/{}_测试数据统计.xlsx'.format(time_str))
+            workbook = xlsxwriter.Workbook(PATH + '/{}_测试数据统计.xlsx'.format(time_str))
             worksheet = workbook.add_worksheet('汇总表')
         ecu_channel = ECUChannel()
         i = 1
@@ -130,6 +131,7 @@ class ParseDat():
             count=count+1
             data_len=len(self.datas)
             self.dat_name = os.path.splitext(os.path.basename(xm1))[0]
+            self.dat_path = os.path.dirname(xm1)
             dat=os.path.basename(xm1)
             self.current_dat = xm1
             yop = mdfreader.Mdf(xm1)
